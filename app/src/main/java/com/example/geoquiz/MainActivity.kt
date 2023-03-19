@@ -13,26 +13,18 @@ import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private val quizViewModel: QuizViewModel by viewModels()
 
     private companion object {
         private const val TAG = "MainActivity"
     }
-
-    private val questionBank = listOf(
-        Question(R.string.question_australia, true),
-        Question(R.string.question_oceans, true),
-        Question(R.string.question_mideast, false),
-        Question(R.string.question_africa, false),
-        Question(R.string.question_americas, true),
-        Question(R.string.question_asia, true)
-    )
-    private var currentIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate(Bundle?) called")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Log.d(TAG, "Got a QuizViewModel: $quizViewModel")
 
         binding.nextButton.setOnClickListener {
             nextQuestion()
@@ -84,25 +76,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun nextQuestion() {
-        currentIndex = (currentIndex + 1).mod(questionBank.size)
+        quizViewModel.moveToNext()
         updateQuestion()
     }
 
     private fun previousQuestion() {
-        currentIndex = (currentIndex - 1).mod(questionBank.size)
+        quizViewModel.moveToPrev()
         updateQuestion()
     }
 
     private fun updateQuestion() {
-        val question = questionBank[currentIndex]
-        val questionTextResId = question.textResId
+        val questionTextResId = quizViewModel.currentQuestionText
         binding.questionTextView.setText(questionTextResId)
         updateAnswerButtonsForCurrentQuestion()
     }
 
     private fun updateAnswerButtonsForCurrentQuestion() {
-        val question = questionBank[currentIndex]
-        if (question.userAnswer != null) {
+        if (quizViewModel.currentQuestionUserAnswer != null) {
             disableAnswerButtons()
         } else {
             enableAnswerButtons()
@@ -120,17 +110,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkAnswer(userAnswer: Boolean) {
-        val question = questionBank[currentIndex]
-        question.userAnswer = userAnswer
+        quizViewModel.setCurrentQuestionAnswer(userAnswer)
         updateAnswerButtonsForCurrentQuestion()
-        val correctAnswer = question.answer
-        val messageResId = if (question.userAnswer == correctAnswer) {
-            R.string.correct_toast
-        } else {
-            R.string.incorrect_toast
-        }
+        val messageResId =
+            if (quizViewModel.currentQuestionAnswer == quizViewModel.currentQuestionUserAnswer) {
+                R.string.correct_toast
+            } else {
+                R.string.incorrect_toast
+            }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
-        val finalScore = finalScore()
+        val finalScore = quizViewModel.finalScore
         if (finalScore != null) {
             val scorePercent = finalScore * 100
             val df = DecimalFormat("#.##")
@@ -141,14 +130,5 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_LONG
             ).show()
         }
-    }
-
-    private fun finalScore(): Double? {
-        var numRight = 0
-        questionBank.forEach {
-            if (it.userAnswer == null) return null
-            if (it.userAnswer == it.answer) numRight++
-        }
-        return numRight.toDouble() / questionBank.size.toDouble()
     }
 }
