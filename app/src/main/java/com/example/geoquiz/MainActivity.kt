@@ -1,11 +1,15 @@
 package com.example.geoquiz
 
+import android.app.Activity
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import com.example.geoquiz.CheatActivity.Companion.EXTRA_ANSWER_SHOWN
 import com.example.geoquiz.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 import java.math.RoundingMode
@@ -14,6 +18,15 @@ import java.text.DecimalFormat
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val quizViewModel: QuizViewModel by viewModels()
+    private val cheatLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    )
+    {
+        if (it.resultCode == Activity.RESULT_OK) {
+            quizViewModel.isCheater =
+                it.data?.getBooleanExtra(EXTRA_ANSWER_SHOWN, false) ?: false
+        }
+    }
 
     private companion object {
         private const val TAG = "MainActivity"
@@ -41,6 +54,14 @@ class MainActivity : AppCompatActivity() {
         binding.falseButton.setOnClickListener {
             checkAnswer(false)
         }
+
+        binding.cheatButton.setOnClickListener {
+            // Start CheatActivity
+            val answerIsTrue = quizViewModel.currentQuestionAnswer
+            val intent = CheatActivity.newIntent(this, answerIsTrue)
+            cheatLauncher.launch(intent)
+        }
+
 
         updateQuestion()
     }
@@ -112,13 +133,13 @@ class MainActivity : AppCompatActivity() {
     private fun checkAnswer(userAnswer: Boolean) {
         quizViewModel.setCurrentQuestionAnswer(userAnswer)
         updateAnswerButtonsForCurrentQuestion()
-        val messageResId =
-            if (quizViewModel.currentQuestionAnswer == quizViewModel.currentQuestionUserAnswer) {
-                R.string.correct_toast
-            } else {
-                R.string.incorrect_toast
-            }
+        val messageResId = when {
+            quizViewModel.isCheater -> R.string.judgment_toast
+            userAnswer == quizViewModel.currentQuestionAnswer -> R.string.correct_toast
+            else -> R.string.incorrect_toast
+        }
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+
         val finalScore = quizViewModel.finalScore
         if (finalScore != null) {
             val scorePercent = finalScore * 100
@@ -126,8 +147,7 @@ class MainActivity : AppCompatActivity() {
             df.roundingMode = RoundingMode.CEILING
 
             Toast.makeText(
-                this, "Final score: ${df.format(scorePercent)}%",
-                Toast.LENGTH_LONG
+                this, "Final score: ${df.format(scorePercent)}%", Toast.LENGTH_LONG
             ).show()
         }
     }

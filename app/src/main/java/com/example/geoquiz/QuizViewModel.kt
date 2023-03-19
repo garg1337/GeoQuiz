@@ -10,6 +10,7 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
         private const val TAG = "QuizViewModel"
         private const val CURRENT_INDEX_KEY = "CURRENT_INDEX_KEY"
         private const val QUESTION_BANK_KEY = "QUESTION_BANK_KEY"
+        private const val IS_CHEATER_KEY = "IS_CHEATER_KEY"
     }
 
     private var questionBank: List<Question>
@@ -26,6 +27,10 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     private var currentIndex: Int
         get() = savedStateHandle.get(CURRENT_INDEX_KEY) ?: 0
         set(value) = savedStateHandle.set(CURRENT_INDEX_KEY, value)
+
+    var isCheater: Boolean
+        get() = savedStateHandle.get(IS_CHEATER_KEY) ?: false
+        set(value) = savedStateHandle.set(IS_CHEATER_KEY, value)
 
     private val currentQuestion: Question
         get() = questionBank[currentIndex]
