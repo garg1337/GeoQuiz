@@ -9,7 +9,6 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     private companion object {
         private const val TAG = "QuizViewModel"
         private const val CURRENT_INDEX_KEY = "CURRENT_INDEX_KEY"
-        private const val QUESTION_BANK_KEY = "QUESTION_BANK_KEY"
         private const val IS_CHEATER_KEY = "IS_CHEATER_KEY"
     }
 
