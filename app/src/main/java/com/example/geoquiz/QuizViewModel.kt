@@ -13,16 +13,14 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
         private const val IS_CHEATER_KEY = "IS_CHEATER_KEY"
     }
 
-    private var questionBank: List<Question>
-        get() = savedStateHandle.get<List<Question>>(QUESTION_BANK_KEY) ?: listOf(
-            Question(R.string.question_australia, true),
-            Question(R.string.question_oceans, true),
-            Question(R.string.question_mideast, false),
-            Question(R.string.question_africa, false),
-            Question(R.string.question_americas, true),
-            Question(R.string.question_asia, true)
-        )
-        set(value) = savedStateHandle.set(QUESTION_BANK_KEY, value)
+    private val questionBank = listOf(
+        Question(R.string.question_australia, true),
+        Question(R.string.question_oceans, true),
+        Question(R.string.question_mideast, false),
+        Question(R.string.question_africa, false),
+        Question(R.string.question_americas, true),
+        Question(R.string.question_asia, true)
+    )
 
     private var currentIndex: Int
         get() = savedStateHandle.get(CURRENT_INDEX_KEY) ?: 0
@@ -61,7 +59,6 @@ class QuizViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
 
     fun setCurrentQuestionAnswer(answer: Boolean) {
         currentQuestion.userAnswer = answer
-        questionBank = questionBank
     }
 
     init {
